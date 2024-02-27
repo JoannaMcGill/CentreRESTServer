@@ -169,7 +169,7 @@ public class SimpleRESTServer
 		
 		if(team == null)
 		{
-			return new RResponse(request,false,"Team "+teamname+" does not exists");
+			return new RResponse(request,false,"Team "+teamname+" does not exist");
 		}
 
 		teams.remove(teamname);

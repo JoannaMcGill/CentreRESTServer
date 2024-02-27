@@ -105,13 +105,17 @@ public class RTeam
 			return new RResponse(request,false,"Class "+newClassName+" already exists");
 		}
 		
+		
+		
 		rClass.description=newDesc;
 		rClass.name=newClassName;
+		
+		
 		
 		classes.remove(className);
 		classes.put(newClassName,rClass);
 		
-		return readClass(request,newClassName);
+		return new RResponse(request,true,"Class "+className+" has been updated",rClass.getRDesc());
 	}
 	
 	
@@ -155,7 +159,7 @@ public class RTeam
 		
 		rClass.objects.put(key,obj);
 		
-		return new RResponse(request,true,"Object for "+className+" successfully created",
+		return new RResponse(request,true,"Object "+key+" successfully created",
 				obj.getRDesc());
 
 	}
@@ -200,7 +204,7 @@ public class RTeam
 		}
 		obj.data=data;
 		
-		return readObject(request,className,objName);
+		return new RResponse(request,true,"Object "+objName+" has been updated");
 	}
 	
 	
