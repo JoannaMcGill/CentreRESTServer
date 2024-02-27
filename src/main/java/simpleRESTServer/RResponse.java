@@ -31,7 +31,7 @@ public class RResponse
 		this.request = request;
 		this.successful = successful;
 		this.message = message;
-		this.data = null;
+		this.data = "";
 	}
 	
 	

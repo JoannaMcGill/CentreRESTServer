@@ -71,7 +71,7 @@ public class RTeam
 		
 		classes.put(className,rClass);
 		
-		return new RResponse(request,true,"Class "+className+" has been created",rClass.getRDesc());
+		return new RResponse(request,true,"Class "+className+" successfully created",rClass.getRDesc());
 
 	}
 	
@@ -97,6 +97,12 @@ public class RTeam
 		if(rClass == null)
 		{
 			return new RResponse(request,false,"Class "+className+" does not exist");
+		}
+		
+		
+		if(!className.equals(newClassName) && classes.containsKey(newClassName))
+		{
+			return new RResponse(request,false,"Class "+newClassName+" already exists");
 		}
 		
 		rClass.description=newDesc;
@@ -149,7 +155,7 @@ public class RTeam
 		
 		rClass.objects.put(key,obj);
 		
-		return new RResponse(request,true,"Object for "+className+" has been created with id "+key,
+		return new RResponse(request,true,"Object for "+className+" successfully created",
 				obj.getRDesc());
 
 	}

@@ -136,10 +136,23 @@ public class SimpleRESTServer
 		
 		if(team == null)
 		{
-			return new RResponse(request,false,"Team "+teamname+" does not exists");
+			return new RResponse(request,false,"Team "+teamname+" does not exist");
 		}
 
-		team.name = desc.name();
+		if(!teamname.equals(desc.name()) && teams.containsKey(desc.name()))
+		{
+			return new RResponse(request,false,"Team "+desc.name()+" already exists");
+		}
+		
+		if(!teamname.equals(desc.name()))
+		{
+			teams.remove(teamname);
+			teams.put(desc.name(), team);
+			
+			team.uri = team.uri.replaceFirst(team.name+"$", desc.name()); //("/v1/"+team.name;
+			team.name = desc.name();
+		}
+		
 		team.description = desc.description();
 		
 		return new RResponse(request,true,"Team "+teamname+" has been updated",team.getRDesc());
@@ -219,7 +232,7 @@ public class SimpleRESTServer
 			return new RResponse(request,false,"Team "+teamname+" does not exists");
 		}
 		
-		
+	
 		return team.updateClass(request,classname,desc.name(),desc.description());
 		
 	}
