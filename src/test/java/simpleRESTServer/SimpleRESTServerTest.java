@@ -88,6 +88,40 @@ class SimpleRESTServerTest
 	}
 	
 	
+	
+	private void assertReadObject(String message,RDesc desc,Object data)
+	{
+
+		RResponseTodo res = client.get()
+				.uri(desc.location())
+				.retrieve()
+				.body(RResponseTodo.class);
+		
+		
+		assertEquals(desc.location(),res.request());
+		assertTrue(res.successful());
+		assertEquals(message,res.message());
+		
+		assertEquals(data,res.data());
+	
+	}
+	
+	private void assertCreateObject(String message,RDesc desc,Object data)
+	{
+		RResponseDesc createDesc = client.post()
+				.uri(desc.location())
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(data)
+				.retrieve()
+				.body(RResponseDesc.class);
+		
+		assertRReponseDesc(createDesc,desc.location(),true,message,desc);
+		
+			
+		
+	}
+	
+	
 	private void assertReadArray(String message,String request,ArrayList<RDesc> array)
 	{
 		RResponseArray readArray = client.get()
@@ -304,7 +338,7 @@ class SimpleRESTServerTest
 	@Test
 	void testGetObjects()
 	{
-		
+		//This test doesn't investigate how the objects are stored, could be accidental test, need another.
 	
 		//Test Create Classes
 		assertCreate("Object "+t1.name()+" successfully created",t1);
@@ -368,6 +402,49 @@ class SimpleRESTServerTest
 		assertReadArray(todoDesc.description(),todoDesc.location(),data);
 	}
 
+	@Test
+	void testGetObjectsReal()
+	{
+
+		
+		Todo t1Data = new Todo("sleep",10);
+		Todo t2Data = new Todo("eat",7);
+		Todo t3Data = new Todo("crow",5);
+		
+		//Test Create Classes
+		assertCreateObject("Object "+t1.name()+" successfully created",t1,t1Data);
+		assertCreateObject("Object "+t2.name()+" successfully created",t2,t2Data);
+		
+		assertReadObject(todoDesc.description(),t1,t1Data);
+		assertReadObject(todoDesc.description(),t2,t2Data);
+		
+		ArrayList<RDesc> data = new ArrayList<RDesc>();
+		data.add(t1);
+		data.add(t2);
+		
 	
+		//Test get all Objects
+		assertReadArray(todoDesc.description(),todoDesc.location(),data);
+		
+			
+
+		//test good name and description change on put
+		RResponseShort goodPut2 = client.put()
+			.uri(t1.location())
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(t3Data)
+			.retrieve()
+			.body(RResponseShort.class);
+		
+		assertRReponseShort(goodPut2,t1.location(), true, "Object t1 has been updated");
+		assertReadObject(todoDesc.description(),t1,t3Data);
+		
+		
+		//test good delete
+		assertDeletePath(t1,"Object t1 has been removed",true);
+		data.remove(t1);
+		//tests remove Team
+		assertReadArray(todoDesc.description(),todoDesc.location(),data);
+	}
 
 }
