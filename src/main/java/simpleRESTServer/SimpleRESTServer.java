@@ -31,19 +31,49 @@ public class SimpleRESTServer
 	{
 		
 		
-		return getURI(request);
-				/*"""	
+		return """	
 <html>
+<head>
+<style>
+table, td, th {
+  border: 1px solid;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+</style>
+</head>
 <body>
-<h1>Password server</h1>
-<p>This is a REST server for retrieving and storing passwords.  Here are the following links to services provide on the server.</p>
-<ol>
-<li><a href="/request">/request"</a> a JSON list of all the people that have requested passwords.
-<li><a href="/auth">/auth"</a> a JSON list of all the people that have successfully submitted their password
-<li><a href="/request/janedoe">/request/:username"</a> A request for a password for the username provided.
-<li><a href="/auth/janedoe/4132">/request/:username/:password"</a> Attempts to authenticate the password for the username provided.
-</ol>
-</html>""";*/
+<h1>Simple REST Database</h1>
+<p>This is a REST server for retrieving and storing JSON Objects.  You can create different categories for the Objects you place in the Server.
+The highest level is the "team".  Teams should contain an entire project.  The next level of organization is the "class"  
+The class levels should be used to store objects that share a class.  When you create a team or class you must include a RDesc to provide a name and description.
+The final level is the Object.  Use a unique id in the URI to describe the object and pass the JSON representation in the body of your post request.
+
+
+
+
+
+Here are the following links to services provide on the server.</p>
+<table>
+<tr><th>Path</th><th>Purpose</th><th>Command</th><th>Description</th></tr>
+<tr><td>/v1</td><td>READ</td><td>Get<td>List all Teams</td></tr>
+<tr><td>/v1/:team</td><td>Create</td><td>Post<td>Create a new team, Pass a RDesc in the body</td></tr>
+<tr><td></td><td>Read</td><td>Get<td>Retrieve all the Classes in the Team</td></tr>
+<tr><td></td><td>Update</td><td>Put<td>Update the name/description of the Team</td></tr>
+<tr><td></td><td>Delete</td><td>Delete<td>Deletes the Team as well as all the classes and objects contained in that team</td></tr>
+<tr><td>/v1/:team/:class</td><td>Create</td><td>Post<td>Create a new class in this team, Pass a RDesc in the body</td></tr>
+<tr><td></td><td>Read</td><td>Get<td>Retrieve all Descriptions of the Objects in this Class</td></tr>
+<tr><td></td><td>Update</td><td>Put<td>Update the name/description of the Class</td></tr>
+<tr><td></td><td>Delete</td><td>Delete<td>Deletes the Class as well as all the objects contained in that class</td></tr>
+<tr><td>/v1/:team/:class/:object</td><td>Create</td><td>Post<td>Create a new object in this class, Pass the object you want to store as JSON in the body</td></tr>
+<tr><td></td><td>Read</td><td>Get<td>Retrieve the JSON object stored in the Server</td></tr>
+<tr><td></td><td>Update</td><td>Put<td>Update the JSON object for this object</td></tr>
+<tr><td></td><td>Delete</td><td>Delete<td>Deletes the Object</td></tr>
+</table>
+</html>""";
 	}
 	
 	
