@@ -44,6 +44,11 @@ public class RTeam
 		return new RDesc(name,description,uri);
 	}
 	
+	/*public RClass getClass(String className)
+	{
+		return classes.get(className);
+	}*/
+	
 	public ArrayList<RDesc> getClassDescriptions()
 	{
 		ArrayList<RDesc> descs = new ArrayList<>();

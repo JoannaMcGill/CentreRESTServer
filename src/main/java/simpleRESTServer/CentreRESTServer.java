@@ -1,5 +1,10 @@
 package simpleRESTServer;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.springframework.boot.SpringApplication;
@@ -12,7 +17,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.exc.StreamReadException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -20,6 +30,10 @@ import jakarta.servlet.http.HttpServletRequest;
 @RestController
 public class CentreRESTServer
 {
+	
+	
+	
+	
 	
 	public static void main(String[] args)
 	{
@@ -38,13 +52,116 @@ public class CentreRESTServer
 		RTeam team = new RTeam(teamName,"Archived Centre Catalog",uriBase+teamName);
 		
 		teams.put(teamName, team);
-		team.createClass(uriBase+teamName+"/course","Course", "All of the Courses");
+		uploadCourses(team);
+	}
+	
+	
+	public record RawMeeting(String instructor,String day, String startTime, String endTime,
+			String building, String description, String roomNumber,
+			int startHour,int startMin, int endHour,int endMin, double contact,boolean isDup
+			) {}
+	
+	
+	
+	public record RawCourse(String season, int year, String Ayear,
+			String dept, String num,String section,String name,
+			double credits,int registered,int max,RawMeeting [] meetings,
+			double contact,boolean isLab, String code,double teach_credit,double studentDensityTC			
+			) {}
+	
+	public record RefCourse(String season, int year, 
+			String dept, String num,String section,String name,
+			String instructor,String meetingTime,
+			String building, String roomNumber
+			) {}
+	
+	
+	public record Room (String building, String roomNumber) {}
+	public HashMap<Room,Integer> roomDict = new HashMap();
+	
+	public void uploadCourses(RTeam team)
+	{
+		String courseName = "course";
+		String courseURI = team.getURI()+"/"+courseName;
 		
+		team.createClass(courseURI,courseName, "All of the Courses");
+				
+		InputStream is = this.getClass().getResourceAsStream("catalog_joined.json");
+		ObjectMapper mapper = new ObjectMapper();
+		ArrayList<RawCourse> rawCourses = null;
+		try
+		{
+			rawCourses = 
+					mapper.readValue(is,new TypeReference<ArrayList<RawCourse>>() {});
+		} catch (StreamReadException e)
+		{
+			e.printStackTrace();
+		} catch (DatabindException e)
+		{
+			e.printStackTrace();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+			
+		for(RawCourse c:rawCourses)
+		{
+			addCourse(team,courseName, c);
+		}
+		
+			
+			
 	}
 	
 	
 	
 	
+	
+	public RefCourse refineCourse(RawCourse raw)
+	{
+		if(raw.meetings.length!=1)
+		{
+			return null;
+		}
+
+		RawMeeting meet= raw.meetings()[0];
+		String meetTime = meet.day()+" "+meet.startTime()+"-"+meet.endTime();
+		
+		Room r = new Room(meet.building(),meet.roomNumber());
+
+		roomDict.put(r,roomDict.getOrDefault(r, 0)+1);
+	
+		
+		return new RefCourse(raw.season(), raw.year(), 
+				raw.dept(), raw.num(),raw.section(),raw.name(),
+				meet.instructor(),meetTime,
+				meet.building(), meet.roomNumber()
+				);	
+
+	}
+	
+	private String genCourseName(RefCourse c)
+	{
+		return c.dept()+c.num+c.section()+"-"+c.year()+c.season();
+	}
+
+	private void addCourse(RTeam team, String className, RawCourse c)
+	{
+		RefCourse refined = refineCourse(c);
+		if(refined == null) { return; }
+		
+		String name = genCourseName(refined);
+		
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode node = mapper.valueToTree(refined);
+		
+		team.createObject(team.uri+"/"+className+"/"+name, name, className, node);
+		
+	}
+
+
+
+
 
 	@GetMapping("/")
 	public String hello(HttpServletRequest request)
