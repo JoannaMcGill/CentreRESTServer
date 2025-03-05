@@ -15,7 +15,7 @@ class SimpleRESTServerTest
 	
 	RestClient client = RestClient.create();
 	
-	String uriBase = "http://localhost:8080/v1";
+	String uriBase = "http://localhost:9000/v1";
 	RDesc teamDesc = new RDesc("MKB","Michael's Team",uriBase+"/MKB");
 	RDesc addDesc = new RDesc("address","Personal Address",teamDesc.location()+"/address");
 	RDesc todoDesc = new RDesc("todo","Todo List Items",teamDesc.location()+"/todo");

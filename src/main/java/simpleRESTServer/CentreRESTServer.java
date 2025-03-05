@@ -16,15 +16,35 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-//MKB @SpringBootApplication
-//MKB @RestController
-public class SimpleRESTServer
+@SpringBootApplication
+@RestController
+public class CentreRESTServer
 {
 	
 	public static void main(String[] args)
 	{
-		SpringApplication.run(SimpleRESTServer.class, args);
+		SpringApplication.run(CentreRESTServer.class, args);
 	}
+	
+	HashMap<String,RTeam> teams = new HashMap<>();
+	
+	
+	
+	
+	public CentreRESTServer()
+	{
+		String uriBase = "http://localhost:9000/v1/";
+		String teamName = "Archive";
+		RTeam team = new RTeam(teamName,"Archived Centre Catalog",uriBase+teamName);
+		
+		teams.put(teamName, team);
+		team.createClass(uriBase+teamName+"/course","Course", "All of the Courses");
+		
+	}
+	
+	
+	
+	
 
 	@GetMapping("/")
 	public String hello(HttpServletRequest request)
@@ -77,7 +97,7 @@ Here are the following links to services provide on the server.</p>
 	}
 	
 	
-	HashMap<String,RTeam> teams = new HashMap<>();
+
 	
 	private String getURI(HttpServletRequest request)
 	{
@@ -371,49 +391,4 @@ Here are the following links to services provide on the server.</p>
 	
 	
 	
-	/*
-	private String getPassword(String user)
-	{
-		return "" + Math.abs(user.hashCode()) % 10000;
-	}
-	
-	
-	@GetMapping("/request")
-	public String getRequesters()
-	{
-		return "Requesters: "+requesters.toString();
-	}
-	
-	@GetMapping("/request/{username}")
-	public String requestPassword(@PathVariable String username)
-	{
-		
-		requesters.add(username);
-		
-		return getPassword(username);
-	}
-
-	@GetMapping("/auth")
-	public String getAuths()
-	{
-		return "Authorized: "+auths.toString();
-	}
-
-	@GetMapping("/auth/{username}/{password}")
-	public String checkPassword(@PathVariable String username,@PathVariable String password)
-	{
-		String pw = getPassword(username);
-		
-		if(pw.equals(password))
-		{
-			auths.add(username);
-			return "Authentication Successful";
-		}
-		else
-		{
-			return "Authentication Failed";
-		}
-	}
-	
-	*/
 }
