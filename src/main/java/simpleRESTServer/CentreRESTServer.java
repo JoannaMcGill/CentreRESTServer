@@ -1,12 +1,11 @@
 package simpleRESTServer;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,8 +21,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-
 import jakarta.servlet.http.HttpServletRequest;
 
 @SpringBootApplication
@@ -52,7 +49,10 @@ public class CentreRESTServer
 		RTeam team = new RTeam(teamName,"Archived Centre Catalog",uriBase+teamName);
 		
 		teams.put(teamName, team);
+		uploadTime(team); //do me first!
 		uploadCourses(team);
+		uploadRoom(team);
+		
 	}
 	
 	
@@ -77,7 +77,35 @@ public class CentreRESTServer
 	
 	
 	public record Room (String building, String roomNumber) {}
-	public HashMap<Room,Integer> roomDict = new HashMap();
+	public HashMap<Room,Integer> roomDict = new HashMap<>();
+	
+	
+	public record CourseTime (String days,String time) {}
+	
+	final CourseTime [] times = {
+			new CourseTime("MWF","08:00-09:00"),
+			new CourseTime("MWF","09:10-10:10"),
+			new CourseTime("MWF","10:20-11:20"),
+			new CourseTime("MWF","11:30-12:30"),
+			new CourseTime("MWF","12:40-01:40"),
+			new CourseTime("MWF","01:50-02:50"),
+			new CourseTime("MWF","03:00-04:00"),
+			new CourseTime("TR","08:00-09:30"),
+			new CourseTime("TR","09:40-11:10"),
+			new CourseTime("TR","12:40-02:10"),
+			new CourseTime("TR","02:20-03:50"),
+			new CourseTime("T","08:00-11:00"),
+			new CourseTime("T","12:40-03:40"),
+			new CourseTime("R","08:00-11:00"),
+			new CourseTime("R","12:40-03:40")
+	};
+
+	public HashMap<String,Integer> timeDict = new HashMap<>();
+	public HashSet<CourseTime> timeSet = new HashSet<CourseTime>();
+	
+	
+	
+	
 	
 	public void uploadCourses(RTeam team)
 	{
@@ -108,29 +136,42 @@ public class CentreRESTServer
 		{
 			addCourse(team,courseName, c);
 		}
-		
+	
 			
 			
 	}
 	
 	
-	
+	private boolean goodTime(CourseTime time)
+	{
+		for(CourseTime t:times)
+		{
+			if(! t.equals(time)) 
+			{ 
+				return true;
+			}
+		}
+		return false;
+	}
 	
 	
 	public RefCourse refineCourse(RawCourse raw)
 	{
-		if(raw.meetings.length!=1)
-		{
-			return null;
-		}
-
+		if(raw.meetings.length!=1) { return null; }
+		if(raw.registered()==0) { return null; } 
+		if(raw.meetings[0].instructor.equals("Staff")) { return null;}
+		
+		
 		RawMeeting meet= raw.meetings()[0];
 		String meetTime = meet.day()+" "+meet.startTime()+"-"+meet.endTime();
+		CourseTime time = new CourseTime(meet.day(),meetTime);
+		
+		if(! goodTime(time)) {return null; }
 		
 		Room r = new Room(meet.building(),meet.roomNumber());
 
 		roomDict.put(r,roomDict.getOrDefault(r, 0)+1);
-	
+		timeDict.put(meetTime, 1);
 		
 		return new RefCourse(raw.season(), raw.year(), 
 				raw.dept(), raw.num(),raw.section(),raw.name(),
@@ -144,7 +185,9 @@ public class CentreRESTServer
 	{
 		return c.dept()+c.num+c.section()+"-"+c.year()+c.season();
 	}
-
+	
+	ObjectMapper mapper = new ObjectMapper();
+	
 	private void addCourse(RTeam team, String className, RawCourse c)
 	{
 		RefCourse refined = refineCourse(c);
@@ -152,13 +195,56 @@ public class CentreRESTServer
 		
 		String name = genCourseName(refined);
 		
-		ObjectMapper mapper = new ObjectMapper();
+		
 		JsonNode node = mapper.valueToTree(refined);
 		
 		team.createObject(team.uri+"/"+className+"/"+name, name, className, node);
 		
 	}
+	
+	public void uploadRoom(RTeam team)
+	{
+		String className = "room";
+		String courseURI = team.getURI()+"/"+className;
+		
+		team.createClass(courseURI,className, "All of the Rooms");
+		
+		for(Room r: roomDict.keySet())
+		{
+			String name = (r.building()+r.roomNumber()).replace(" ","-");
+			JsonNode node = mapper.valueToTree(r);
+			team.createObject(team.uri+"/"+className+"/"+name, name, className, node);
+		}	
+	}
+	
+	
+	
+	
+	
+	public void uploadTime(RTeam team)
+	{
+		String className = "time";
+		String courseURI = team.getURI()+"/"+className;
+		
+		team.createClass(courseURI,className, "Normal Class Times");
+		
+		
+		
+		
+		
+		
+		for(CourseTime t :times)
+		{
+			timeSet.add(t);
+			String name = (t.days+"-"+t.time).replace(" ","-");
+			//System.out.println(t);
+			JsonNode node = mapper.valueToTree(t);
+			team.createObject(team.uri+"/"+className+"/"+name, name, className, node);
+		}	
+	}
 
+	
+	
 
 
 
