@@ -102,12 +102,13 @@ public class CentreRESTServer
 
 	public HashSet<CourseTime> timeSet = new HashSet<CourseTime>();
 
-	public record Faculty(String name) {}
+	public record Faculty(String name,String location) {}
 	public record Department(String dept,HashSet<Faculty> faculty) {}
 	
 	public HashMap<String,Department> deptMap = new HashMap<String,Department>();
 	public HashSet<Faculty> facSet = new HashSet<Faculty>();
 	
+
 	
 	public void uploadCourses(RTeam team)
 	{
@@ -143,8 +144,16 @@ public class CentreRESTServer
 			
 	}
 	
+	private String calcFacLocation(RTeam team,String instructor)
+	{
+		
+		String name = instructor.replace(",", "").replace(".", "").replace(" ","_");
+		
+		
+		return team.getURI()+"/faculty/"+name;
+	}
 	
-	private RefCourse refineCourse(RawCourse raw)
+	private RefCourse refineCourse(RawCourse raw,RTeam team)
 	{
 		if(raw.meetings.length!=1) { return null; }
 		if(raw.registered()==0) { return null; } 
@@ -168,7 +177,7 @@ public class CentreRESTServer
 			dept = new Department(raw.dept(),new HashSet<Faculty>());
 			deptMap.put(raw.dept(),dept);
 		}
-		Faculty fac = new Faculty(meet.instructor());
+		Faculty fac = new Faculty(meet.instructor(),calcFacLocation(team,meet.instructor()));
 		dept.faculty().add(fac);
 		facSet.add(fac);
 		
@@ -190,7 +199,7 @@ public class CentreRESTServer
 	
 	private void addCourse(RTeam team, String className, RawCourse c)
 	{
-		RefCourse refined = refineCourse(c);
+		RefCourse refined = refineCourse(c,team);
 		if(refined == null) { return; }
 		
 		String name = genCourseName(refined);
