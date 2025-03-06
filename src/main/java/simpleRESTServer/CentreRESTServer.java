@@ -52,6 +52,8 @@ public class CentreRESTServer
 		uploadTime(team); //do me first!
 		uploadCourses(team);
 		uploadRoom(team);
+		uploadDept(team);
+		uploadFac(team);
 		
 	}
 	
@@ -60,9 +62,7 @@ public class CentreRESTServer
 			String building, String description, String roomNumber,
 			int startHour,int startMin, int endHour,int endMin, double contact,boolean isDup
 			) {}
-	
-	
-	
+		
 	public record RawCourse(String season, int year, String Ayear,
 			String dept, String num,String section,String name,
 			double credits,int registered,int max,RawMeeting [] meetings,
@@ -100,11 +100,13 @@ public class CentreRESTServer
 			new CourseTime("R","12:40-03:40")
 	};
 
-	public HashMap<String,Integer> timeDict = new HashMap<>();
 	public HashSet<CourseTime> timeSet = new HashSet<CourseTime>();
+
+	public record Faculty(String name) {}
+	public record Department(String dept,HashSet<Faculty> faculty) {}
 	
-	
-	
+	public HashMap<String,Department> deptMap = new HashMap<String,Department>();
+	public HashSet<Faculty> facSet = new HashSet<Faculty>();
 	
 	
 	public void uploadCourses(RTeam team)
@@ -154,12 +156,22 @@ public class CentreRESTServer
 		CourseTime time = new CourseTime(meet.day(),meet.startTime()+"-"+meet.endTime());
 		
 		if(!timeSet.contains(time)) { return null; }
-		//if(! goodTime(time)) {return null; }
+
 		
 		Room r = new Room(meet.building(),meet.roomNumber());
 
 		roomDict.put(r,roomDict.getOrDefault(r, 0)+1);
-		timeDict.put(meetTime, 1);
+		
+		Department dept = deptMap.get(raw.dept());
+		if(dept == null)
+		{
+			dept = new Department(raw.dept(),new HashSet<Faculty>());
+			deptMap.put(raw.dept(),dept);
+		}
+		Faculty fac = new Faculty(meet.instructor());
+		dept.faculty().add(fac);
+		facSet.add(fac);
+		
 		
 		return new RefCourse(raw.season(), raw.year(), 
 				raw.dept(), raw.num(),raw.section(),raw.name(),
@@ -204,6 +216,37 @@ public class CentreRESTServer
 			team.createObject(team.uri+"/"+className+"/"+name, name, className, node);
 		}	
 	}
+	
+	public void uploadDept(RTeam team)
+	{
+		String className = "dept";
+		String courseURI = team.getURI()+"/"+className;
+		
+		team.createClass(courseURI,className, "All of the Departments");
+		
+		for(Department d: deptMap.values())
+		{
+			String name = d.dept();
+			JsonNode node = mapper.valueToTree(d);
+			team.createObject(team.uri+"/"+className+"/"+name, name, className, node);
+		}	
+	}
+	
+	public void uploadFac(RTeam team)
+	{
+		String className = "faculty";
+		String courseURI = team.getURI()+"/"+className;
+		
+		team.createClass(courseURI,className, "All of the Faculty");
+		
+		for(Faculty f: facSet)
+		{
+			String name = f.name().replace(",", "").replace(".", "").replace(" ","_");
+			JsonNode node = mapper.valueToTree(f);
+			team.createObject(team.uri+"/"+className+"/"+name, name, className, node);
+		}	
+	}
+	
 	
 	
 	
