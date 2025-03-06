@@ -142,20 +142,7 @@ public class CentreRESTServer
 	}
 	
 	
-	private boolean goodTime(CourseTime time)
-	{
-		for(CourseTime t:times)
-		{
-			if(! t.equals(time)) 
-			{ 
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	
-	public RefCourse refineCourse(RawCourse raw)
+	private RefCourse refineCourse(RawCourse raw)
 	{
 		if(raw.meetings.length!=1) { return null; }
 		if(raw.registered()==0) { return null; } 
@@ -164,9 +151,10 @@ public class CentreRESTServer
 		
 		RawMeeting meet= raw.meetings()[0];
 		String meetTime = meet.day()+" "+meet.startTime()+"-"+meet.endTime();
-		CourseTime time = new CourseTime(meet.day(),meetTime);
+		CourseTime time = new CourseTime(meet.day(),meet.startTime()+"-"+meet.endTime());
 		
-		if(! goodTime(time)) {return null; }
+		if(!timeSet.contains(time)) { return null; }
+		//if(! goodTime(time)) {return null; }
 		
 		Room r = new Room(meet.building(),meet.roomNumber());
 
