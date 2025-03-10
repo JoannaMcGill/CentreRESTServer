@@ -2,6 +2,8 @@ package simpleRESTServer;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,7 +46,18 @@ public class CentreRESTServer
 	
 	public CentreRESTServer()
 	{
-		String uriBase = "http://localhost:9000/v1/";
+		
+		String localhost = "localhost";
+		try
+		{
+			localhost = InetAddress.getLocalHost().getCanonicalHostName();
+		} catch (UnknownHostException e)
+		{
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+		}
+		String uriBase = "http://"+localhost+":9000/v1/";
+
 		String teamName = "Archive";
 		RTeam team = new RTeam(teamName,"Archived Centre Catalog",uriBase+teamName);
 		
