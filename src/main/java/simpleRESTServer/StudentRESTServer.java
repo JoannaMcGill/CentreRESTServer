@@ -10,13 +10,13 @@ public class StudentRESTServer
 		
 		RestClient client = RestClient.create();
 		
-		String uriBase = "http://localhost:8080/v1";
+		String uriBase = "http://localhost:9000/v1";
 		
-		RDesc desc = new RDesc("mkb","Michael K Bradshaw","");
+		RDesc desc = new RDesc("jm","Joanna McGill","");
 		
 		
 		RResponseDesc resp = client.post()
-		.uri(uriBase+"/mkb")
+		.uri(uriBase+"/jm")
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(desc)
 		.retrieve()

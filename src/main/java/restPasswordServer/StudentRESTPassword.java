@@ -9,16 +9,16 @@ public class StudentRESTPassword
 	{
 		RestClient client = RestClient.create();
 		
-		String uriBase = "http://localhost:8080/";
+		String uriBase = "http://localhost:9000/";
 		
 		
 		String pw = client.get()
-		.uri(uriBase+"request/mkb")
+		.uri(uriBase+"request/jane")
 		.retrieve()
 		.body(String.class);
 
 		String response = client.get()
-		.uri(uriBase+"auth/mkb/"+pw)
+		.uri(uriBase+"auth/jane/"+pw)
 		.retrieve()
 		.body(String.class);
 
